@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Keystroke Dynamics Demo</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        input { width: 400px; font-size: 18px; margin-bottom: 10px; }
+        button { font-size: 16px; padding: 5px 10px; margin-left: 10px; }
+        pre { background: #f4f4f4; padding: 10px; border-radius: 5px; }
+        h3 { margin-top: 30px; }
+        .box { margin-bottom: 40px; }
+    </style>
+</head>
+<body>
+    <h2>Keystroke Dynamics Demo</h2>
+
+    <!-- Training Box -->
+    <div class="box">
+        <h3>Training: Type your phrase here</h3>
+        <input id="trainingBox" type="text" placeholder="Start typing for training..." />
+        <pre id="trainingOutput">No samples yet.</pre>
+    </div>
+
+    <!-- Login Box -->
+    <div class="box">
+        <h3>Login: Type your phrase</h3>
+        <input id="loginBox" type="text" placeholder="Type here to login..." />
+        <button id="loginBtn">Attempt Login</button>
+        <pre id="loginOutput">Login info will appear here.</pre>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/keystroke-dynamics@1.0.2/keystroke-dynamics.min.js"></script>
+    <script>
+        const trainingBox = document.getElementById('trainingBox');
+        const trainingOutput = document.getElementById('trainingOutput');
+        const loginBox = document.getElementById('loginBox');
+        const loginOutput = document.getElementById('loginOutput');
+        const loginBtn = document.getElementById('loginBtn');
+
+        let trainingTimer, loginTimer;
+        const auth = new KeystrokeDynamics();
+        auth.initialize("demo-pass", "demo-user");
+        auth.setThreshold(0.95);
+        const REQUIRED_SAMPLES = 5;
+
+        /** ---------------- Training ---------------- */
+        trainingBox.addEventListener('input', () => {
+            if (!auth.isRecording) auth.startRecording(trainingBox);
+            clearTimeout(trainingTimer);
+        });
+
+        trainingBox.addEventListener('keyup', () => {
+            clearTimeout(trainingTimer);
+            trainingTimer = setTimeout(async () => {
+                try {
+                    const success = await auth.addSample();
+                    const count = auth.sampleCount || 0;
+
+                    if (!success) {
+                        trainingOutput.textContent = "Not enough data yet. Keep typing...";
+                        return;
+                    }
+
+                    const features = auth._featureVector || [];
+                    let text = `✅ Sample added!\nTotal training samples collected: ${count}/${REQUIRED_SAMPLES}\n\nDwell & Flight Times (s):\n`;
+                    features.forEach((val, i) => text += `Feature ${i + 1}: ${val.toFixed(3)} s\n`);
+                    if (count >= REQUIRED_SAMPLES) text += "\nYou have enough samples. You can try login now.";
+                    else text += `\nKeep typing to reach ${REQUIRED_SAMPLES} samples.`;
+
+                    trainingOutput.textContent = text;
+                    trainingBox.value = "";
+                } catch (err) {
+                    trainingOutput.textContent = "Error capturing sample: " + err;
+                }
+            }, 500);
+        });
+
+        /** ---------------- Login ---------------- */
+        // Start recording as user types in login box
+        loginBox.addEventListener('input', () => {
+            if (!auth.isRecording) auth.startRecording(loginBox);
+            clearTimeout(loginTimer);
+        });
+
+        loginBox.addEventListener('keyup', () => {
+            clearTimeout(loginTimer);
+            loginTimer = setTimeout(() => {
+                auth.stopRecording();
+            }, 2000); // Stop recording after 2000ms of inactivity
+        });
+
+        // Login button triggers verification
+        loginBtn.addEventListener('click', async () => {
+            try {
+                const result = await auth.verify();
+                loginOutput.textContent = `Login attempt result:\nSimilarity: ${(result.similarity*100).toFixed(2)}%\nThreshold: ${(result.threshold*100).toFixed(0)}%\n\n` +
+                    (result.isAuthentic ? "✅ Similar enough — would allow login!" : "❌ Not similar enough — login denied.");
+                loginBox.value = "";
+            } catch (err) {
+                loginOutput.textContent = "Login attempt error: " + err;
+            }
+        });
+    </script>
+</body>
+</html>

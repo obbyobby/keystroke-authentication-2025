@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Keystroke Dynamics Test</title>
+</head>
+
+<body>
+    <h2>Type something:</h2>
+    <input id="username" type="text" placeholder="Start typing..." style="width:300px; font-size:18px;">
+    
+    <h3>Captured Pattern:</h3>
+    <pre id="output"></pre>
+
+    <!-- IMPORTANT: Load the working keystroke-dynamics library -->
+    <script src="https://cdn.jsdelivr.net/npm/keystroke-dynamics@1.0.2/keystroke-dynamics.min.js"></script>
+
+   <script>
+const output = document.getElementById('output');
+let timer;
+
+if (typeof KeystrokeDynamics === "undefined") {
+    output.textContent = "ERROR: KeystrokeDynamics failed to load!";
+} else {
+
+    const auth = new KeystrokeDynamics();
+    auth.initialize("test-pass", "user@example.com");
+
+    const input = document.getElementById('username');
+
+    input.addEventListener('input', () => {
+        if (!auth.isRecording) {
+            auth.startRecording();
+        }
+        clearTimeout(timer);
+    });
+
+    input.addEventListener('keyup', () => {
+        clearTimeout(timer);
+
+        // Wait until user stops typing for 500ms
+        timer = setTimeout(async () => {
+            try {
+                const pattern = await auth.addSample();
+                output.textContent = JSON.stringify(pattern, null, 2);
+                console.log("Captured pattern:", pattern);
+            } catch (err) {
+                console.warn("Not enough data yet:", err);
+            }
+        }, 500);
+    });
+}
+</script>
+
+</body>
+</html>
