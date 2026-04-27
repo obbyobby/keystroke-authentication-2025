@@ -91,15 +91,28 @@
 
         // Login button triggers verification
         loginBtn.addEventListener('click', async () => {
-            try {
-                const result = await auth.verify();
-                loginOutput.textContent = `Login attempt result:\nSimilarity: ${(result.similarity*100).toFixed(2)}%\nThreshold: ${(result.threshold*100).toFixed(0)}%\n\n` +
-                    (result.isAuthentic ? "✅ Similar enough — would allow login!" : "❌ Not similar enough — login denied.");
-                loginBox.value = "";
-            } catch (err) {
-                loginOutput.textContent = "Login attempt error: " + err;
-            }
+    try {
+        const features = auth._featureVector;
+
+        const response = await fetch('http://localhost:3000/verify', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ features })
         });
+
+        const result = await response.json();
+
+        loginOutput.textContent =
+            `Similarity: ${(result.similarity * 100).toFixed(2)}%\n` +
+            `Threshold: ${(result.threshold * 100).toFixed(0)}%\n\n` +
+            (result.isAuthentic ? "ACCEPT" : "REJECT");
+
+    } catch (err) {
+        loginOutput.textContent = "Error: " + err;
+    }
+});
     </script>
 </body>
 </html>

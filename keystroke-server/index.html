@@ -1,0 +1,317 @@
+<!-- Client interface for keystroke dynamics experiment -->
+
+
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Keystroke Dynamics Experiment</title>
+    <style>
+        body {
+            font-family: Arial;
+            margin: 20px;
+            max-width: 900px;
+        }
+
+        input, select {
+            width: 500px;
+            font-size: 18px;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        button {
+            font-size: 16px;
+            padding: 8px 12px;
+            margin: 5px 5px 5px 0;
+        }
+
+        pre {
+            background: #f4f4f4;
+            padding: 10px;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+
+<body>
+
+<h2>Keystroke Dynamics Experiment</h2>
+
+<p><strong>Phrase:</strong> the quick brown fox jumps over the lazy dog</p>
+
+
+<!-- Enrolment: collect genuine user training samples -->
+
+<h3>Training</h3>
+<input id="trainingBox" placeholder="Type phrase for training..." />
+<button id="trainBtn">Save Training Sample</button>
+<pre id="trainingOutput">No samples yet.</pre>
+
+<h3>Experiment Settings</h3>
+
+
+<!-- Select impairment condition and attempt type -->
+
+<label>Condition</label>
+<select id="conditionSelect">
+    <option value="baseline">Baseline</option>
+
+    <option value="latency_low">Latency Low - 50ms</option>
+    <option value="latency_medium">Latency Medium - 150ms</option>
+    <option value="latency_high">Latency High - 300ms</option>
+
+    <option value="jitter_low">Jitter Low - 5ms</option>
+    <option value="jitter_medium">Jitter Medium - 20ms</option>
+    <option value="jitter_high">Jitter High - 50ms</option>
+
+    <option value="loss_low">Packet Loss Low - 1%</option>
+    <option value="loss_medium">Packet Loss Medium - 3%</option>
+    <option value="loss_high">Packet Loss High - 5%</option>
+</select>
+
+<label>Attempt Type</label>
+<select id="attemptTypeSelect">
+    <option value="genuine">Genuine</option>
+    <option value="impostor">Impostor</option>
+</select>
+
+
+<!-- Verification: submit login attempt -->
+
+
+<h3>Login Attempt</h3>
+<input id="loginBox" placeholder="Type phrase for login..." />
+<button id="loginBtn">Attempt Login</button>
+
+<pre id="loginOutput"></pre>
+
+<!-- Clear stored training profile -->
+
+
+<button id="resetBtn">Reset Training Data</button>
+
+<script>
+
+// Fixed phrase used for all training and login attempts
+
+const TARGET_PHRASE = "the quick brown fox jumps over the lazy dog";
+
+const trainingBox = document.getElementById("trainingBox");
+const loginBox = document.getElementById("loginBox");
+const trainingOutput = document.getElementById("trainingOutput");
+const loginOutput = document.getElementById("loginOutput");
+const conditionSelect = document.getElementById("conditionSelect");
+const attemptTypeSelect = document.getElementById("attemptTypeSelect");
+
+// Store raw keydown / keyup timing events
+
+let trainingEvents = [];
+let loginEvents = [];
+let sampleCount = 0;
+
+/*
+Capture keyboard timing events.
+
+Records:
+- keydown timestamp
+- keyup timestamp
+*/
+
+// Save key press time
+
+function attachRecorder(inputBox, eventStore) {
+    inputBox.addEventListener("keydown", function(event) {
+        if (event.key.length === 1 || event.key === "Backspace" || event.key === " ") {
+            eventStore.push({
+                type: "keydown",
+                key: event.key,
+                time: performance.now()
+            });
+        }
+    });
+
+// Save key release time
+
+    inputBox.addEventListener("keyup", function(event) {
+        if (event.key.length === 1 || event.key === "Backspace" || event.key === " ") {
+            eventStore.push({
+                type: "keyup",
+                key: event.key,
+                time: performance.now()
+            });
+        }
+    });
+}
+
+attachRecorder(trainingBox, trainingEvents);
+attachRecorder(loginBox, loginEvents);
+
+/*
+Convert raw keyboard events into timing features.
+
+Hold time:
+keyup - keydown
+
+Flight time:
+next keydown - previous keyup
+*/
+
+function extractFeatures(events) {
+    let features = [];
+
+    let keyDownTimes = {};
+    let holdTimes = [];
+    let flightTimes = [];
+
+    let previousKeyUpTime = null;
+
+    for (let event of events) {
+        if (event.type === "keydown") {
+            keyDownTimes[event.key] = event.time;
+
+            if (previousKeyUpTime !== null) {
+                let flightTime = event.time - previousKeyUpTime;
+                flightTimes.push(flightTime);
+            }
+        }
+
+        if (event.type === "keyup") {
+            if (keyDownTimes[event.key] !== undefined) {
+                let holdTime = event.time - keyDownTimes[event.key];
+                holdTimes.push(holdTime);
+                previousKeyUpTime = event.time;
+            }
+        }
+    }
+
+    features = holdTimes.concat(flightTimes);
+
+// Final feature vector used for authentication
+
+
+    return features;
+}
+
+// Ensure typed phrase matches required test phrase
+
+function validPhrase(inputBox) {
+    return inputBox.value.trim() === TARGET_PHRASE;
+}
+
+/* -------- TRAIN -------- */
+
+/* Submit training sample to server */
+
+document.getElementById("trainBtn").addEventListener("click", async () => {
+    try {
+        if (!validPhrase(trainingBox)) {
+            trainingOutput.textContent = "Phrase does not match. Type it exactly.";
+            return;
+        }
+
+        const features = extractFeatures(trainingEvents);
+
+        if (!features || features.length < 5) {
+            trainingOutput.textContent = "Not enough timing features captured. Try again.";
+            return;
+        }
+
+// Send enrolment features to server
+
+        const response = await fetch("/train", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ features })
+        });
+
+        const result = await response.json();
+
+        sampleCount++;
+
+        trainingOutput.textContent =
+            `Training sample ${sampleCount} saved.\n` +
+            `Feature count: ${features.length}\n` +
+            `Server training count: ${result.count}`;
+
+        trainingBox.value = "";
+        trainingEvents.length = 0;;
+
+    } catch (err) {
+        trainingOutput.textContent = "Training error: " + err;
+    }
+});
+
+/* -------- LOGIN -------- */
+
+/* Submit login attempt for verification */
+
+document.getElementById("loginBtn").addEventListener("click", async () => {
+    try {
+        if (!validPhrase(loginBox)) {
+            loginOutput.textContent = "Phrase does not match. Type it exactly.";
+            return;
+        }
+
+        const features = extractFeatures(loginEvents);
+
+        if (!features || features.length < 5) {
+            loginOutput.textContent = "Not enough timing features captured. Try again.";
+            return;
+        }
+
+        const condition = conditionSelect.value;
+        const attemptType = attemptTypeSelect.value;
+
+
+// Send login features and selected condition to server
+
+        const response = await fetch("/verify", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                features,
+                condition,
+                attemptType
+            })
+        });
+
+        const result = await response.json();
+
+        loginOutput.textContent =
+            `Condition: ${result.condition}\n` +
+            `Attempt type: ${result.attemptType}\n` +
+            `Similarity: ${(result.similarity * 100).toFixed(2)}%\n` +
+            `Threshold: ${(result.threshold * 100).toFixed(0)}%\n` +
+            `Decision: ${result.accepted ? "ACCEPT" : "REJECT"}`;
+
+        loginBox.value = "";
+        loginEvents.length = 0;
+
+    } catch (err) {
+        loginOutput.textContent = "Login error: " + err;
+    }
+});
+
+/* -------- RESET -------- */
+
+
+/* Reset experiment state */
+
+document.getElementById("resetBtn").addEventListener("click", async () => {
+    await fetch("/reset");
+
+    trainingEvents.length = 0;
+    loginEvents.length = 0;
+    sampleCount = 0;
+
+    trainingBox.value = "";
+    loginBox.value = "";
+
+    trainingOutput.textContent = "Reset complete.";
+    loginOutput.textContent = "";
+});
+</script>
+
+</body>
+</html>

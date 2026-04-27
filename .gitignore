@@ -1,0 +1,9 @@
+node_modules/
+**/node_modules/
+
+results.csv
+results_view.csv
+summary_results.csv
+**/results.csv
+
+*.log
