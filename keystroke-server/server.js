@@ -77,69 +77,6 @@ Jitter: random timing variation
 Packet loss: random feature removal
 */
 
-function impairFeatures(features, condition) {
-    let latencyAmount = 0;
-    let jitterAmount = 0;
-    let lossRate = 0;
-
-// Baseline: no impairment
-
-    if (condition === "baseline") {
-        latencyAmount = 0;
-        jitterAmount = 0;
-        lossRate = 0;
-    }
-
-// Latency-only conditions
-
-    else if (condition === "latency_low") {
-        latencyAmount = 50;
-    } else if (condition === "latency_medium") {
-        latencyAmount = 150;
-    } else if (condition === "latency_high") {
-        latencyAmount = 300;
-    }
-
-// Jitter-only conditions
-
-    else if (condition === "jitter_low") {
-        jitterAmount = 5;
-    } else if (condition === "jitter_medium") {
-        jitterAmount = 20;
-    } else if (condition === "jitter_high") {
-        jitterAmount = 50;
-    }
-
-// Packet-loss-only conditions
-
-    else if (condition === "loss_low") {
-        lossRate = 0.01;
-    } else if (condition === "loss_medium") {
-        lossRate = 0.03;
-    } else if (condition === "loss_high") {
-        lossRate = 0.05;
-    }
-
-    let impaired = [];
-
-// Randomly drop feature to simulate packet loss
-
-    for (let i = 0; i < features.length; i++) {
-        if (Math.random() < lossRate) {
-            continue;
-        }
-
-// Generate random timing disturbance for jitter
-
-        const jitter = (Math.random() * 2 - 1) * jitterAmount;
-
-// Apply impairment to feature value
-
-        impaired.push(features[i] + latencyAmount + jitter);
-    }
-
-    return impaired;
-} 
 
 /* 
 Store a new enrolment sample submitted by the client.
@@ -170,7 +107,7 @@ app.post("/train", (req, res) => {
 Verify a login attempt.
 
 Steps:
-1. Apply selected network impairment
+1. Receive feature vector from client
 2. Compare against stored training samples
 3. Use median similarity score
 4. Accept or reject using threshold
@@ -196,13 +133,12 @@ app.post("/verify", (req, res) => {
         });
     }
 
-// Simulate network condition before verification
 
-    const impairedTest = impairFeatures(testFeatures, condition);
+    // Compare received login feature vector against all stored training samples
 
-    const similarities = trainingData.map(sample => {
-        return cosineSimilarity(impairedTest, sample);
-    });
+const similarities = trainingData.map(sample => {
+    return cosineSimilarity(testFeatures, sample);
+});
 
 // Compare login sample against all stored training samples
 

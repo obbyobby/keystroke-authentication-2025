@@ -97,6 +97,32 @@
 
 const TARGET_PHRASE = "the quick brown fox jumps over the lazy dog";
 
+const ALL_CONDITIONS = [
+    "baseline",
+    "latency_low",
+    "latency_medium",
+    "latency_high",
+    "jitter_low",
+    "jitter_medium",
+    "jitter_high",
+    "loss_low",
+    "loss_medium",
+    "loss_high"
+];
+
+const CONDITION_LABELS = {
+    baseline: "Baseline",
+    latency_low: "Latency Low - 50ms",
+    latency_medium: "Latency Medium - 150ms",
+    latency_high: "Latency High - 300ms",
+    jitter_low: "Jitter Low - 5ms",
+    jitter_medium: "Jitter Medium - 20ms",
+    jitter_high: "Jitter High - 50ms",
+    loss_low: "Packet Loss Low - 1%",
+    loss_medium: "Packet Loss Medium - 3%",
+    loss_high: "Packet Loss High - 5%"
+};
+
 const trainingBox = document.getElementById("trainingBox");
 const loginBox = document.getElementById("loginBox");
 const trainingOutput = document.getElementById("trainingOutput");
@@ -118,7 +144,9 @@ Records:
 - keyup timestamp
 */
 
-// Save key press time
+//attach keydown and keyup event listeners to input field
+
+//save key press time
 
 function attachRecorder(inputBox, eventStore) {
     inputBox.addEventListener("keydown", function(event) {
@@ -187,7 +215,7 @@ function extractFeatures(events) {
 
     features = holdTimes.concat(flightTimes);
 
-// Final feature vector used for authentication
+// Combine hold-time and flight-time values into one feature vector(Final feature vector used for authentication)
 
 
     return features;
@@ -235,12 +263,76 @@ document.getElementById("trainBtn").addEventListener("click", async () => {
             `Server training count: ${result.count}`;
 
         trainingBox.value = "";
-        trainingEvents.length = 0;;
+        trainingEvents.length = 0;
 
     } catch (err) {
         trainingOutput.textContent = "Training error: " + err;
     }
 });
+
+/*
+Apply selected network condition to raw keystroke events before feature extraction.
+
+This follows the flow:
+raw keystroke events -> network condition -> feature extraction -> authentication
+*/
+
+function applyNetworkCondition(events, condition) {
+    let latency = 0;
+    let jitter = 0;
+    let lossRate = 0;
+
+    if (condition === "baseline") {
+        latency = 0;
+        jitter = 0;
+        lossRate = 0;
+    } else if (condition === "latency_low") {
+        latency = 50;
+    } else if (condition === "latency_medium") {
+        latency = 150;
+    } else if (condition === "latency_high") {
+        latency = 300;
+    } else if (condition === "jitter_low") {
+        jitter = 5;
+    } else if (condition === "jitter_medium") {
+        jitter = 20;
+    } else if (condition === "jitter_high") {
+        jitter = 50;
+    } else if (condition === "loss_low") {
+        lossRate = 0.01;
+    } else if (condition === "loss_medium") {
+        lossRate = 0.03;
+    } else if (condition === "loss_high") {
+        lossRate = 0.05;
+    }
+
+    let changedEvents = [];
+
+// Randomly remove events to simulate packet loss
+
+    for (let event of events) {
+        if (Math.random() < lossRate) {
+            continue;
+        }
+
+// Generate random timing variation for jitter
+
+        const randomJitter = (Math.random() * 2 - 1) * jitter;
+
+        changedEvents.push({
+            type: event.type,
+            key: event.key,
+            time: event.time + latency + randomJitter   // Apply latency and jitter to the raw timestamp
+        });
+    }
+
+
+// Reorder events by timestamp after impairment
+
+    changedEvents.sort((a, b) => a.time - b.time);
+
+    return changedEvents;
+}
 
 /* -------- LOGIN -------- */
 
@@ -253,37 +345,38 @@ document.getElementById("loginBtn").addEventListener("click", async () => {
             return;
         }
 
-        const features = extractFeatures(loginEvents);
-
-        if (!features || features.length < 5) {
-            loginOutput.textContent = "Not enough timing features captured. Try again.";
-            return;
-        }
-
-        const condition = conditionSelect.value;
         const attemptType = attemptTypeSelect.value;
 
+        let outputText = `Attempt type: ${attemptType}\n\n`;
 
-// Send login features and selected condition to server
+        for (let condition of ALL_CONDITIONS) {
+            const impairedEvents = applyNetworkCondition(loginEvents, condition);
+            const features = extractFeatures(impairedEvents);
 
-        const response = await fetch("/verify", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                features,
-                condition,
-                attemptType
-            })
-        });
+            if (!features || features.length < 5) {
+                outputText += `${CONDITION_LABELS[condition]}: Not enough features captured\n`;
+                continue;
+            }
 
-        const result = await response.json();
+            const response = await fetch("/verify", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    features,
+                    condition,
+                    attemptType
+                })
+            });
 
-        loginOutput.textContent =
-            `Condition: ${result.condition}\n` +
-            `Attempt type: ${result.attemptType}\n` +
-            `Similarity: ${(result.similarity * 100).toFixed(2)}%\n` +
-            `Threshold: ${(result.threshold * 100).toFixed(0)}%\n` +
-            `Decision: ${result.accepted ? "ACCEPT" : "REJECT"}`;
+            const result = await response.json();
+
+            outputText +=
+                `${CONDITION_LABELS[condition]}\n` +
+                `Similarity: ${(result.similarity * 100).toFixed(2)}%\n` +
+                `Decision: ${result.accepted ? "ACCEPT" : "REJECT"}\n\n`;
+        }
+
+        loginOutput.textContent = outputText;
 
         loginBox.value = "";
         loginEvents.length = 0;
@@ -292,7 +385,6 @@ document.getElementById("loginBtn").addEventListener("click", async () => {
         loginOutput.textContent = "Login error: " + err;
     }
 });
-
 /* -------- RESET -------- */
 
 
