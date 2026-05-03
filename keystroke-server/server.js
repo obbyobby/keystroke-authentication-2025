@@ -26,7 +26,7 @@ app.use(express.json({ limit: "10mb" }));
 /* Experiment configuration and in-memory training storage */
 
 const resultsFile = "results.csv";
-const THRESHOLD = 0.80;
+const THRESHOLDS = [0.80, 0.85, 0.90];
 
 let trainingData = [];
 
@@ -67,6 +67,17 @@ function cosineSimilarity(a, b) {
     if (magA === 0 || magB === 0) return 0;
 
     return dot / (Math.sqrt(magA) * Math.sqrt(magB));
+}
+
+function normalise(features) {
+    const mean = features.reduce((a, b) => a + b, 0) / features.length;
+
+    const std = Math.sqrt(
+        features.map(x => (x - mean) ** 2).reduce((a, b) => a + b, 0) / features.length
+    );
+
+    // avoid divide by zero
+    return features.map(x => std === 0 ? 0 : (x - mean) / std);
 }
 
 /*
@@ -128,56 +139,51 @@ app.post("/verify", (req, res) => {
             condition,
             attemptType,
             similarity: 0,
-            threshold: THRESHOLD,
-            accepted: false
+            results: THRESHOLDS.map(threshold => ({
+                threshold,
+                accepted: false
+            }))
         });
     }
 
-
-    // Compare received login feature vector against all stored training samples
-
-const similarities = trainingData.map(sample => {
+   const similarities = trainingData.map(sample => {
     return cosineSimilarity(testFeatures, sample);
 });
 
-// Compare login sample against all stored training samples
-
     similarities.sort((a, b) => a - b);
-
-// Use median similarity to reduce effect of outliers
 
     const median = similarities[Math.floor(similarities.length / 2)];
 
-// Authentication decision
-
-    const accepted = median >= THRESHOLD;
+    const resultsPerThreshold = THRESHOLDS.map(threshold => {
+        return {
+            threshold,
+            accepted: median >= threshold
+        };
+    });
 
     const timestamp = new Date().toISOString();
 
-// Save experiment result for later analysis
-
-    fs.appendFileSync(
-        resultsFile,
-        `${timestamp},${condition},${attemptType},${THRESHOLD},${median},${accepted}\n`
-    );
+    resultsPerThreshold.forEach(r => {
+        fs.appendFileSync(
+            resultsFile,
+            `${timestamp},${condition},${attemptType},${r.threshold},${median},${r.accepted}\n`
+        );
+    });
 
     console.log({
         condition,
         attemptType,
         similarity: median,
-        accepted
+        results: resultsPerThreshold
     });
 
     res.json({
         condition,
         attemptType,
         similarity: median,
-        threshold: THRESHOLD,
-        accepted
+        results: resultsPerThreshold
     });
 });
-
-/* Clear all stored training samples */
 
 app.get("/reset", (req, res) => {
     trainingData = [];

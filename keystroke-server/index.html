@@ -373,7 +373,11 @@ document.getElementById("loginBtn").addEventListener("click", async () => {
             outputText +=
                 `${CONDITION_LABELS[condition]}\n` +
                 `Similarity: ${(result.similarity * 100).toFixed(2)}%\n` +
-                `Decision: ${result.accepted ? "ACCEPT" : "REJECT"}\n\n`;
+                result.results.forEach(r => {
+    outputText +=
+        `Threshold ${r.threshold}\n` +
+        `Decision: ${r.accepted ? "ACCEPT" : "REJECT"}\n`;
+});
         }
 
         loginOutput.textContent = outputText;
