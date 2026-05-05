@@ -69,24 +69,8 @@ function cosineSimilarity(a, b) {
     return dot / (Math.sqrt(magA) * Math.sqrt(magB));
 }
 
-function normalise(features) {
-    const mean = features.reduce((a, b) => a + b, 0) / features.length;
 
-    const std = Math.sqrt(
-        features.map(x => (x - mean) ** 2).reduce((a, b) => a + b, 0) / features.length
-    );
 
-    // avoid divide by zero
-    return features.map(x => std === 0 ? 0 : (x - mean) / std);
-}
-
-/*
-Apply simulated network impairment to keystroke features.
-
-Latency: constant additive delay
-Jitter: random timing variation
-Packet loss: random feature removal
-*/
 
 
 /* 

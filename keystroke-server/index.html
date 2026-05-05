@@ -51,24 +51,8 @@
 <h3>Experiment Settings</h3>
 
 
-<!-- Select impairment condition and attempt type -->
+<!-- Select attempt type -->
 
-<label>Condition</label>
-<select id="conditionSelect">
-    <option value="baseline">Baseline</option>
-
-    <option value="latency_low">Latency Low - 50ms</option>
-    <option value="latency_medium">Latency Medium - 150ms</option>
-    <option value="latency_high">Latency High - 300ms</option>
-
-    <option value="jitter_low">Jitter Low - 5ms</option>
-    <option value="jitter_medium">Jitter Medium - 20ms</option>
-    <option value="jitter_high">Jitter High - 50ms</option>
-
-    <option value="loss_low">Packet Loss Low - 1%</option>
-    <option value="loss_medium">Packet Loss Medium - 3%</option>
-    <option value="loss_high">Packet Loss High - 5%</option>
-</select>
 
 <label>Attempt Type</label>
 <select id="attemptTypeSelect">
@@ -127,7 +111,6 @@ const trainingBox = document.getElementById("trainingBox");
 const loginBox = document.getElementById("loginBox");
 const trainingOutput = document.getElementById("trainingOutput");
 const loginOutput = document.getElementById("loginOutput");
-const conditionSelect = document.getElementById("conditionSelect");
 const attemptTypeSelect = document.getElementById("attemptTypeSelect");
 
 // Store raw keydown / keyup timing events
@@ -273,7 +256,7 @@ document.getElementById("trainBtn").addEventListener("click", async () => {
 /*
 Apply selected network condition to raw keystroke events before feature extraction.
 
-This follows the flow:
+This follows:
 raw keystroke events -> network condition -> feature extraction -> authentication
 */
 
@@ -327,7 +310,7 @@ function applyNetworkCondition(events, condition) {
     }
 
 
-// Reorder events by timestamp after impairment
+// Reorder events by timestamp after impairment to maintain correct temporal sequence
 
     changedEvents.sort((a, b) => a.time - b.time);
 

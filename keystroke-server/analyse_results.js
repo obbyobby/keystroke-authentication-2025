@@ -1,6 +1,10 @@
 const fs = require("fs");
 
+// CSV file containing raw authentication results
+
 const FILE = "results.csv";
+
+// Order used to display network conditions consistently in the output
 
 const CONDITION_ORDER = [
     "baseline",
@@ -14,6 +18,8 @@ const CONDITION_ORDER = [
     "loss_medium",
     "loss_high"
 ];
+
+// Parse raw results CSV into JavaScript objects
 
 function parseCSV(filePath) {
     const text = fs.readFileSync(filePath, "utf8").trim();

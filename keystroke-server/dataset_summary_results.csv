@@ -1,31 +1,83 @@
 condition,threshold,genuine_total,false_rejections,FRR_percent,average_genuine_similarity_percent,impostor_total,false_acceptances,FAR_percent,average_impostor_similarity_percent
-dataset_baseline,0.8,100,10,10.00,87.60,100,29,29.00,67.62
-dataset_baseline,0.85,100,14,14.00,87.60,100,13,13.00,67.62
-dataset_baseline,0.9,100,41,41.00,87.60,100,1,1.00,67.62
-dataset_latency_low,0.8,100,10,10.00,87.60,100,29,29.00,67.62
-dataset_latency_low,0.85,100,14,14.00,87.60,100,13,13.00,67.62
-dataset_latency_low,0.9,100,41,41.00,87.60,100,1,1.00,67.62
-dataset_latency_medium,0.8,100,10,10.00,87.60,100,29,29.00,67.62
-dataset_latency_medium,0.85,100,14,14.00,87.60,100,13,13.00,67.62
-dataset_latency_medium,0.9,100,41,41.00,87.60,100,1,1.00,67.62
-dataset_latency_high,0.8,100,10,10.00,87.60,100,29,29.00,67.62
-dataset_latency_high,0.85,100,14,14.00,87.60,100,13,13.00,67.62
-dataset_latency_high,0.9,100,41,41.00,87.60,100,1,1.00,67.62
-dataset_jitter_low,0.8,100,10,10.00,87.58,100,27,27.00,67.57
-dataset_jitter_low,0.85,100,14,14.00,87.58,100,13,13.00,67.57
-dataset_jitter_low,0.9,100,44,44.00,87.58,100,1,1.00,67.57
-dataset_jitter_medium,0.8,100,10,10.00,87.34,100,25,25.00,67.11
-dataset_jitter_medium,0.85,100,15,15.00,87.34,100,12,12.00,67.11
-dataset_jitter_medium,0.9,100,47,47.00,87.34,100,1,1.00,67.11
-dataset_jitter_high,0.8,100,11,11.00,85.65,100,17,17.00,65.55
-dataset_jitter_high,0.85,100,22,22.00,85.65,100,7,7.00,65.55
-dataset_jitter_high,0.9,100,67,67.00,85.65,100,1,1.00,65.55
-dataset_loss_low,0.8,100,13,13.00,86.85,100,25,25.00,66.21
-dataset_loss_low,0.85,100,18,18.00,86.85,100,11,11.00,66.21
-dataset_loss_low,0.9,100,44,44.00,86.85,100,1,1.00,66.21
-dataset_loss_medium,0.8,100,19,19.00,84.85,100,18,18.00,64.26
-dataset_loss_medium,0.85,100,26,26.00,84.85,100,8,8.00,64.26
-dataset_loss_medium,0.9,100,55,55.00,84.85,100,1,1.00,64.26
-dataset_loss_high,0.8,100,30,30.00,81.57,100,16,16.00,62.09
-dataset_loss_high,0.85,100,37,37.00,81.57,100,3,3.00,62.09
-dataset_loss_high,0.9,100,65,65.00,81.57,100,0,0.00,62.09
+dataset_baseline,0.8,100,10,10,87.6,100,29,29,67.62
+dataset_baseline,0.85,100,14,14,87.6,100,13,13,67.62
+dataset_baseline,0.9,100,41,41,87.6,100,1,1,67.62
+dataset_latency_low,0.8,100,10,10,87.6,100,29,29,67.62
+dataset_latency_low,0.85,100,14,14,87.6,100,13,13,67.62
+dataset_latency_low,0.9,100,41,41,87.6,100,1,1,67.62
+dataset_latency_medium,0.8,100,10,10,87.6,100,29,29,67.62
+dataset_latency_medium,0.85,100,14,14,87.6,100,13,13,67.62
+dataset_latency_medium,0.9,100,41,41,87.6,100,1,1,67.62
+dataset_latency_high,0.8,100,10,10,87.6,100,29,29,67.62
+dataset_latency_high,0.85,100,14,14,87.6,100,13,13,67.62
+dataset_latency_high,0.9,100,41,41,87.6,100,1,1,67.62
+dataset_jitter_low,0.8,100,10,10,87.58,100,27,27,67.57
+dataset_jitter_low,0.85,100,14,14,87.58,100,13,13,67.57
+dataset_jitter_low,0.9,100,44,44,87.58,100,1,1,67.57
+dataset_jitter_medium,0.8,100,10,10,87.34,100,25,25,67.11
+dataset_jitter_medium,0.85,100,15,15,87.34,100,12,12,67.11
+dataset_jitter_medium,0.9,100,47,47,87.34,100,1,1,67.11
+dataset_jitter_high,0.8,100,11,11,85.65,100,17,17,65.55
+dataset_jitter_high,0.85,100,22,22,85.65,100,7,7,65.55
+dataset_jitter_high,0.9,100,67,67,85.65,100,1,1,65.55
+dataset_loss_low,0.8,100,13,13,86.85,100,25,25,66.21
+dataset_loss_low,0.85,100,18,18,86.85,100,11,11,66.21
+dataset_loss_low,0.9,100,44,44,86.85,100,1,1,66.21
+dataset_loss_medium,0.8,100,19,19,84.85,100,18,18,64.26
+dataset_loss_medium,0.85,100,26,26,84.85,100,8,8,64.26
+dataset_loss_medium,0.9,100,55,55,84.85,100,1,1,64.26
+dataset_loss_high,0.8,100,30,30,81.57,100,16,16,62.09
+dataset_loss_high,0.85,100,37,37,81.57,100,3,3,62.09
+dataset_loss_high,0.9,100,65,65,81.57,100,0,0,62.09
+,,,,,,,,,
+,,,,,,,,,
+,,,,,,,,,
+Average of FRR_percent,Column Labels,,,,,,,,
+Row Labels,0.8,0.85,0.9,(blank),Grand Total,,,,
+Baseline,10,14,41,,21.66666667,,,,
+Jitter  ±5ms,10,14,44,,,,,,
+Jitter  ±20ms,10,15,47,,33.33333333,,,,
+Jitter  ±50ms,11,22,67,,22.66666667,,,,
+Latency 50ms,10,14,41,,24,,,,
+Latency 150ms,10,14,41,,21.66666667,,,,
+Latency 300ms,10,14,41,,21.66666667,,,,
+Packet  loss 1%,13,18,44,,21.66666667,,,,
+Packet loss 3%,19,26,55,,44,,,,
+Packet loss 5%,30,37,65,,25,,,,
+(blank),,,,,,,,,
+Grand Total,13.3,18.8,48.6,,26.9,,,,
+,,,,,,,,,
+,,,,,,,,,
+Average of FAR_percent,Column Labels,,,,,,,,
+Row Labels,0.8,0.85,0.9,Grand Total,,,,,
+Baseline,29,13,1,14.33333333,,,,,
+Jitter  ±5ms,27,13,1,,,,,,
+Jitter  ±20ms,25,12,1,8.333333333,,,,,
+Jitter  ±50ms,17,7,1,13.66666667,,,,,
+Latency 50ms,29,13,1,12.66666667,,,,,
+Latency 150ms,29,13,1,14.33333333,,,,,
+Latency 300ms,29,13,1,14.33333333,,,,,
+Packet loss 1%,25,11,1,14.33333333,,,,,
+Packet loss 3%,18,8,1,6.333333333,,,,,
+Packet loss 5%,16,3,0,12.33333333,,,,,
+Grand Total,24.4,10.6,0.9,11.96666667,,,,,
+,,,,,,,,,
+,,,,,,,,,
+Row Labels,Average of average_genuine_similarity_percent,Average of average_impostor_similarity_percent,,,,,,,
+dataset_baseline,87.6,67.62,,,,,,,
+dataset_jitter_high,85.65,65.55,,,,,,,
+dataset_jitter_low,87.58,67.57,,,,,,,
+dataset_jitter_medium,87.34,67.11,,,,,,,
+dataset_latency_high,87.6,67.62,,,,,,,
+dataset_latency_low,87.6,67.62,,,,,,,
+dataset_latency_medium,87.6,67.62,,,,,,,
+dataset_loss_high,81.57,62.09,,,,,,,
+dataset_loss_low,86.85,66.21,,,,,,,
+dataset_loss_medium,84.85,64.26,,,,,,,
+Grand Total,86.424,66.327,,,,,,,
+,,,,,,,,,
+,,,,,,,,,
+Threshold,FAR (%),FRR (%),,,,,,,
+0.8,29,10,,,,,,,
+0.85,13,14,,,,,,,
+0.9,1,41,,,,,,,
